@@ -32,6 +32,7 @@
   },
   "peerDependencies": {
     "@jscad/modeling": "*",
+    "manifold-3d": ">=3.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-reconciler": "*",
@@ -39,6 +40,9 @@
   },
   "peerDependenciesMeta": {
     "@jscad/modeling": {
+      "optional": true
+    },
+    "manifold-3d": {
       "optional": true
     },
     "three": {
@@ -60,6 +64,7 @@
     "gh-pages": "^5.0.0",
     "jscad-planner": "^0.0.10",
     "lucide-react": "^0.525.0",
+    "manifold-3d": "^3.3.2",
     "react-code-blocks": "^0.1.6",
     "react-cosmos": "^6.1.1",
     "react-cosmos-plugin-vite": "^6.1.1",
