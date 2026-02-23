@@ -62,9 +62,7 @@ describe("manifold backend - primitives", () => {
   })
 
   it("should render a torus", () => {
-    const result = manifoldRender(
-      <torus innerRadius={3} outerRadius={5} />,
-    )
+    const result = manifoldRender(<torus innerRadius={3} outerRadius={5} />)
     expect(result.length).toBe(1)
     expect(result[0].polygons.length).toBeGreaterThan(0)
   })

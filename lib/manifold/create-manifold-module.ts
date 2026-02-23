@@ -65,9 +65,7 @@ export function createManifoldModule(wasm: ManifoldToplevel): JSCADModule {
       },
 
       cylinder({ radius, height }) {
-        return new ManifoldGeom3(
-          Manifold.cylinder(height, radius, -1, 0, true),
-        )
+        return new ManifoldGeom3(Manifold.cylinder(height, radius, -1, 0, true))
       },
 
       ellipsoid({ radius }) {
@@ -178,7 +176,11 @@ export function createManifoldModule(wasm: ManifoldToplevel): JSCADModule {
       },
 
       polygon({ points }) {
-        return new ManifoldGeom2(new CrossSection([points]))
+        // Use EvenOdd fill rule to handle self-intersecting contours
+        // (e.g. expanded stroke polygons that zigzag)
+        return new ManifoldGeom2(
+          new CrossSection([deduplicatePoints(points)], "EvenOdd"),
+        )
       },
 
       rectangle({ size }) {
@@ -390,9 +392,7 @@ export function createManifoldModule(wasm: ManifoldToplevel): JSCADModule {
           return out
         },
         fromScaling(out: number[], v: [number, number, number]) {
-          const m = [
-            v[0], 0, 0, 0, 0, v[1], 0, 0, 0, 0, v[2], 0, 0, 0, 0, 1,
-          ]
+          const m = [v[0], 0, 0, 0, 0, v[1], 0, 0, 0, 0, v[2], 0, 0, 0, 0, 1]
           for (let i = 0; i < 16; i++) out[i] = m[i]
           return out
         },
@@ -428,6 +428,33 @@ function binomial(n: number, k: number): number {
   let result = 1
   for (let i = 0; i < k; i++) {
     result = (result * (n - i)) / (i + 1)
+  }
+  return result
+}
+
+/** Remove consecutive duplicate points that cause zero-area CrossSections */
+function deduplicatePoints(points: [number, number][]): [number, number][] {
+  if (points.length < 2) return points
+  const eps = 1e-10
+  const result: [number, number][] = [points[0]]
+  for (let i = 1; i < points.length; i++) {
+    const prev = result[result.length - 1]
+    const curr = points[i]
+    const dx = curr[0] - prev[0]
+    const dy = curr[1] - prev[1]
+    if (dx * dx + dy * dy > eps) {
+      result.push(curr)
+    }
+  }
+  // Also check last vs first
+  if (result.length > 1) {
+    const first = result[0]
+    const last = result[result.length - 1]
+    const dx = last[0] - first[0]
+    const dy = last[1] - first[1]
+    if (dx * dx + dy * dy <= eps) {
+      result.pop()
+    }
   }
   return result
 }
