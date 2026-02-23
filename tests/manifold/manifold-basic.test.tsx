@@ -66,6 +66,26 @@ describe("manifold backend - primitives", () => {
     expect(result.length).toBe(1)
     expect(result[0].polygons.length).toBeGreaterThan(0)
   })
+
+  it("should render an ellipsoid", () => {
+    const result = manifoldRender(<ellipsoid radius={[5, 3, 2]} />)
+    expect(result.length).toBe(1)
+    expect(result[0].polygons.length).toBeGreaterThan(0)
+  })
+
+  it("should render a geodesicSphere", () => {
+    const result = manifoldRender(<geodesicSphere radius={5} frequency={2} />)
+    expect(result.length).toBe(1)
+    expect(result[0].polygons.length).toBeGreaterThan(0)
+  })
+
+  it("should render a cylinderElliptic", () => {
+    const result = manifoldRender(
+      <cylinderElliptic height={10} startRadius={[3, 5]} endRadius={[3, 5]} />,
+    )
+    expect(result.length).toBe(1)
+    expect(result[0].polygons.length).toBeGreaterThan(0)
+  })
 })
 
 describe("manifold backend - booleans", () => {

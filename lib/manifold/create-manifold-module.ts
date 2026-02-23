@@ -258,10 +258,10 @@ export function createManifoldModule(wasm: ManifoldToplevel): JSCADModule {
         return new ManifoldGeom3(cs.extrude(height, twistSteps, twistDeg))
       },
 
-      extrudeRotate({ angle }, geometry: any) {
+      extrudeRotate({ angle, segments }, geometry: any) {
         const cs = unwrapCrossSection(geometry)
         const angleDeg = radToDeg(angle)
-        return new ManifoldGeom3(cs.revolve(0, angleDeg))
+        return new ManifoldGeom3(cs.revolve(segments || 0, angleDeg))
       },
 
       extrudeRectangular({ size, height }, geometry: any) {
@@ -322,18 +322,28 @@ export function createManifoldModule(wasm: ManifoldToplevel): JSCADModule {
     },
 
     hulls: {
-      hull(...argsOrArray: any[]) {
-        const geoms = Array.isArray(argsOrArray[0])
-          ? argsOrArray[0]
-          : argsOrArray
+      hull(first: any, ...rest: any[]) {
+        let geoms: any[]
+        if (Array.isArray(first)) {
+          geoms = first
+        } else if (first && Array.isArray(first.geometries)) {
+          geoms = first.geometries
+        } else {
+          geoms = [first, ...rest]
+        }
         const manifolds = geoms.map((g: any) => g._manifold)
         return new ManifoldGeom3(Manifold.hull(manifolds))
       },
 
-      hullChain(...argsOrArray: any[]) {
-        const geoms = Array.isArray(argsOrArray[0])
-          ? argsOrArray[0]
-          : argsOrArray
+      hullChain(first: any, ...rest: any[]) {
+        let geoms: any[]
+        if (Array.isArray(first)) {
+          geoms = first
+        } else if (first && Array.isArray(first.geometries)) {
+          geoms = first.geometries
+        } else {
+          geoms = [first, ...rest]
+        }
 
         if (geoms.length < 2) {
           throw new Error("hullChain requires at least 2 geometries")
@@ -358,8 +368,8 @@ export function createManifoldModule(wasm: ManifoldToplevel): JSCADModule {
     maths: {
       slice: {
         fromPoints(points: Array<[number, number]>) {
-          // Return a CrossSection-based slice representation
-          return new CrossSection([points])
+          // Return a ManifoldGeom2 so unwrapCrossSection() can find _crossSection
+          return new ManifoldGeom2(new CrossSection([points]))
         },
         transform(matrix: any, slice: any) {
           // Apply a 2D transform to the slice
@@ -455,6 +465,11 @@ function deduplicatePoints(points: [number, number][]): [number, number][] {
     if (dx * dx + dy * dy <= eps) {
       result.pop()
     }
+  }
+  if (result.length < 3) {
+    throw new Error(
+      "Polygon must have at least 3 distinct points after deduplication",
+    )
   }
   return result
 }
